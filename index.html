@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Absensi Fingerprint</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="logo">🔐 <span>Absensi Fingerprint</span></div>
+    <div class="header-right">
+      <span id="clock">--:--:--</span>
+      <span id="connStatus" class="badge offline">ESP32: Offline</span>
+    </div>
+  </header>
+
+  <nav>
+    <button class="tab active" data-tab="dashboard">Dashboard</button>
+    <button class="tab" data-tab="users">Data Pengguna</button>
+    <button class="tab" data-tab="attendance">Data Absensi</button>
+    <button class="tab" data-tab="rekap">Rekap</button>
+    <button class="tab" data-tab="settings">Pengaturan</button>
+  </nav>
+
+  <main>
+    <!-- DASHBOARD -->
+    <section id="tab-dashboard" class="tab-content active">
+      <h2>Dashboard</h2>
+      <p id="schoolName" class="subtitle">-</p>
+      <div class="cards">
+        <div class="card"><h3>Total Pengguna</h3><p id="statTotal">0</p></div>
+        <div class="card hadir"><h3>Hadir</h3><p id="statHadir">0</p></div>
+        <div class="card terlambat"><h3>Terlambat</h3><p id="statTerlambat">0</p></div>
+        <div class="card belum"><h3>Belum Hadir</h3><p id="statBelum">0</p></div>
+        <div class="card"><h3>Persentase</h3><p id="statPersen">0%</p></div>
+      </div>
+      <p class="date" id="todayDate">-</p>
+    </section>
+
+    <!-- USERS -->
+    <section id="tab-users" class="tab-content">
+      <h2>Data Pengguna</h2>
+      <div class="toolbar">
+        <input type="text" id="searchUser" placeholder="Cari nama / ID...">
+        <button class="btn primary" onclick="openUserModal()">+ Tambah</button>
+      </div>
+      <div class="table-wrap">
+        <table id="usersTable">
+          <thead><tr><th>ID</th><th>NIS</th><th>Nama</th><th>Kelas</th><th>JK</th><th>Status</th><th>Aksi</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ATTENDANCE -->
+    <section id="tab-attendance" class="tab-content">
+      <h2>Data Absensi</h2>
+      <div class="toolbar">
+        <input type="date" id="filterTanggal">
+        <button class="btn" onclick="loadAttendance()">Filter</button>
+        <button class="btn" onclick="exportCSV('attendance')">Export CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table id="attendanceTable">
+          <thead><tr><th>No</th><th>ID</th><th>Nama</th><th>NIS</th><th>Kelas</th><th>Tanggal</th><th>Jam</th><th>Status</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- REKAP -->
+    <section id="tab-rekap" class="tab-content">
+      <h2>Rekap Absensi</h2>
+      <div class="toolbar">
+        <input type="date" id="rekapStart">
+        <input type="date" id="rekapEnd">
+        <input type="text" id="rekapKelas" placeholder="Kelas (opsional)">
+        <button class="btn primary" onclick="loadRekap()">Tampilkan</button>
+        <button class="btn" onclick="exportCSV('rekap')">Export CSV</button>
+        <button class="btn" onclick="window.print()">Cetak</button>
+      </div>
+      <div class="cards">
+        <div class="card hadir"><h3>Hadir</h3><p id="rekapHadir">0</p></div>
+        <div class="card terlambat"><h3>Terlambat</h3><p id="rekapTerlambat">0</p></div>
+        <div class="card belum"><h3>Tidak Hadir</h3><p id="rekapBelum">0</p></div>
+      </div>
+      <div class="table-wrap">
+        <table id="rekapTable">
+          <thead><tr><th>Tanggal</th><th>Nama</th><th>Kelas</th><th>Jam</th><th>Status</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="tab-settings" class="tab-content">
+      <h2>Pengaturan</h2>
+      <div class="form-card">
+        <label>Nama Sekolah <input id="setNama"></label>
+        <label>Jam Masuk <input type="time" id="setJamMasuk"></label>
+        <label>Batas Keterlambatan <input type="time" id="setBatas"></label>
+        <label>Tahun Ajaran <input id="setTahun"></label>
+        <label>Web App URL ESP32 <input id="setUrl" placeholder="https://script.google.com/..."></label>
+        <button class="btn primary" onclick="saveSettings()">Simpan</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL USER -->
+  <div id="userModal" class="modal hidden">
+    <div class="modal-box">
+      <h3 id="modalTitle">Tambah Pengguna</h3>
+      <input type="hidden" id="uEditMode" value="0">
+      <label>ID Fingerprint <input id="uId" type="number" min="0" max="49"></label>
+      <label>NIS <input id="uNis"></label>
+      <label>Nama Lengkap <input id="uNama"></label>
+      <label>Kelas <input id="uKelas"></label>
+      <label>Jenis Kelamin
+        <select id="uJk"><option>L</option><option>P</option></select>
+      </label>
+      <label>Status
+        <select id="uStatus"><option>Aktif</option><option>Nonaktif</option></select>
+      </label>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeUserModal()">Batal</button>
+        <button class="btn primary" onclick="saveUser()">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
